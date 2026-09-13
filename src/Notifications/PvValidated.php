@@ -54,6 +54,6 @@ class PvValidated extends Notification implements ShouldQueue
 
     protected function pvUrl(): string
     {
-        return route('pv-module.show', $this->pv);
+        return route(config('pv-module.routes.name_prefix', 'pv-module.').'show', $this->pv);
     }
 }
