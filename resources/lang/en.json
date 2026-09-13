@@ -207,5 +207,7 @@
     "Suivez les demandes de signature et les validations de vos PV.": "Track signature requests and validation of your minutes.",
     "Colonnes affichées": "Displayed columns",
     "Validé et signé": "Validated and signed",
-    "Participant": "Participant"
+    "Participant": "Participant",
+    "Mécanisme de signature": "Signature mechanism",
+    "Signé le": "Signed on"
 }

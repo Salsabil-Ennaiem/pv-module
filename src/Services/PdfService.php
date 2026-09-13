@@ -4,6 +4,7 @@ namespace SalsabilEnnaiem\PvModule\Services;
 
 use Mpdf\Mpdf;
 use SalsabilEnnaiem\PvModule\Models\Pv;
+use SalsabilEnnaiem\PvModule\Models\PvSignature;
 use SalsabilEnnaiem\PvModule\Models\PvTemplate;
 
 class PdfService
@@ -70,12 +71,19 @@ class PdfService
 
         $signatureService = app(SignatureService::class);
         $signatures = [];
+        $signatureMeta = [];
         foreach ($pv->validations as $validation) {
             if ($validation->statut === $validation::STATUT_VALIDE && $validation->user) {
                 $data = $signatureService->getSignatureBase64($validation->user);
                 if ($data) {
                     $signatures[$validation->user_id] = $data;
                 }
+
+                $stored = PvSignature::where('user_id', $validation->user_id)->first();
+                $signatureMeta[$validation->user_id] = [
+                    'mechanism' => $stored?->signed_mechanism ?? $signatureService->mechanism(),
+                    'signed_at' => $stored?->signed_at,
+                ];
             }
         }
 
@@ -99,6 +107,7 @@ class PdfService
             'placementsBySection' => $placementsBySection,
             'validationByUser' => $validationByUser,
             'signatures' => $signatures,
+            'signatureMeta' => $signatureMeta,
             'userNames' => $userNames,
         ];
     }

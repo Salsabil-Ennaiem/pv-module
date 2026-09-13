@@ -9,6 +9,12 @@ Bien que nommé `pv-module` (routes/vues « procès-verbaux »), c'est un **mote
 - **Workflow complet** : création, brouillon, envoi aux participants, validation, signature, archivage.
 - **Versions & historiques** : chaque modification enregistre une version consultable.
 - **Signatures & validation** : signature dessinée/téléchargée, règles d'approbation configurables.
+- **Trace de conformité des signatures (R2)** : chaque signature enregistre son **mécanisme**
+  (`signed_mechanism`, défaut `simple_image`) et son **horodatage** (`signed_at`) en base, et les
+  reporte dans le PDF généré.
+- **RTL / arabe (R3)** : rendu des textes arabes longs (≥ 200 caractères) avec directionnalité
+  `dir="rtl"` / `direction: rtl` via mPDF (`autoScriptToLang`, `autoLangToFont`, `autoArabic`,
+  police `dejavusans`).
 - **Notifications** par email + canal `database`.
 - **Génération PDF** via mPDF (template personnalisable).
 - **Templates réutilisables** + seeder par défaut.
@@ -108,10 +114,36 @@ return [
     'max_signature_size_kb' => 2048,
     'allowed_signature_mimes' => ['image/jpeg', 'image/png', 'image/gif'],
 
+    // Trace de conformité des signatures (R2)
+    'signature_mechanism' => 'simple_image',    // mécanisme enregistré dans signed_mechanism + reporté au PDF
+
+    // Rendu PDF / directionnalité (R3)
+    'default_locale' => 'fr',                   // langue par défaut des documents (attribut html lang)
+    'rtl_locales'    => ['ar', 'he', 'fa', 'ur'], // locales rendues de droite à gauche (dir=rtl)
+
     // Types de documents déclarables
     'types' => ['pv'],                          // 'pv', 'commission', 'jury', 'deliberation'…
 ];
 ```
+
+### Détail des clés de configuration
+
+| Clé | Type | Défaut | Rôle |
+|---|---|---|---|
+| `user_model` | `class-string` | `App\Models\User` | Modèle utilisateur de l'hôte (jamais un modèle du module). |
+| `routes.prefix` | `string` | `pv-module` | Préfixe d'URL du module. |
+| `routes.name_prefix` | `string` | `pv-module.` | Préfixe des noms de routes. |
+| `routes.middleware` | `array` | `['web','auth']` | Middlewares appliqués aux routes (l'hôte peut remplacer `auth`). |
+| `storage_disk` | `string` | `local` | Disque Laravel où sont stockées les images de signature. |
+| `can_manage_pv` | `class-string` | `DefaultPvRules` | Contrat RBAC (créer/envoyer/valider/signer/supprimer). |
+| `approval_rules` | `class-string` | `DefaultApprovalRules` | Contrat de règles de passage à « validé ». |
+| `participant_resolver` | `class-string` | `DefaultParticipantResolver` | Contrat de résolution/normalisation des participants. |
+| `max_signature_size_kb` | `int` | `2048` | Taille maximale du fichier de signature. |
+| `allowed_signature_mimes` | `array` | `jpeg,png,gif` | Formats d'image de signature acceptés. |
+| `signature_mechanism` | `string` | `simple_image` | Mécanisme de signature enregistré (`signed_mechanism`) et affiché dans le PDF (R2). |
+| `default_locale` | `string` | `fr` | Locale par défaut des documents générés (R3). |
+| `rtl_locales` | `array` | `ar,he,fa,ur` | Locales rendues de droite à gauche (`dir="rtl"`) (R3). |
+| `types` | `array` | `['pv']` | Types de documents déclarés. |
 
 ## Personnalisation pour vos besoins
 
@@ -183,11 +215,25 @@ Chargées automatiquement en JSON (`ar.json`, `en.json`, `fr.json`). Publiez-les
 php artisan vendor:publish --tag=pv-lang
 ```
 
+## Limite de conformité
+
+- **Signature simple uniquement.** Le mécanisme livré est `simple_image` : une image apposée
+  accompagnée d'un horodatage (`signed_at`). Ce n'est **pas** une signature qualifiée (eIDAS/PKI).
+- L'architecture est **prête pour une signature qualifiée** : le mécanisme est déjà une donnée
+  (`signed_mechanism`) et la bascule se fera via une `SignatureStrategy` (voir P8) sans migration
+  destructive.
+- Décisions et mécanismes de bascule détaillés dans [`ASSUMPTIONS.md`](ASSUMPTIONS.md) — notamment
+  **ID-01** (propriété intellectuelle / namespace), **ID-02** (signature) et **ID-03** (RTL).
+
 ## Tests
 
 ```bash
 composer test
 ```
+
+La suite couvre le workflow, la sécurité, la **trace de conformité des signatures** (R2) et le
+**rendu RTL arabe** (R3). Des artefacts de recette sont générés sous `tests/artifacts/`
+(`arabic_pv_sample.pdf`, `arabic_pv_preview.html`, `arabic_pv_preview.png`).
 
 ## Licence
 

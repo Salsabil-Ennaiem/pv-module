@@ -13,7 +13,16 @@ class PvSignature extends Model
         'user_id',
         'path',
         'mime',
+        'signed_mechanism',
+        'signed_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'signed_at' => 'datetime',
+        ];
+    }
 
     protected function userModel(): string
     {

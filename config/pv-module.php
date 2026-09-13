@@ -60,6 +60,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Signature — trace de conformité (R2)
+    |--------------------------------------------------------------------------
+    | Mécanisme de signature enregistré sur la table `pv_module_signatures`
+    | (colonne `signed_mechanism`) et reporté dans le PDF généré.
+    | 'simple_image' = image apposée + horodatage (`signed_at`).
+    | Architecture prête pour un mécanisme qualifié via SignatureStrategy (P8).
+    */
+
+    'signature_mechanism' => 'simple_image',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Rendu PDF — directionnalité (R3)
+    |--------------------------------------------------------------------------
+    | default_locale : langue par défaut utilisée pour baliser les documents
+    | (attribut html `lang`).
+    | rtl_locales : locales dont le contenu doit être rendu de droite à gauche
+    | (attribut html `dir`, CSS `direction` sur les sections du template).
+    */
+
+    'default_locale' => 'fr',
+    'rtl_locales' => ['ar', 'he', 'fa', 'ur'],
+
+    /*
+    |--------------------------------------------------------------------------
     | Types de PV du module
     |--------------------------------------------------------------------------
     | Libre : l'hôte peut déclarer ses types ('commission', 'jury', ...).

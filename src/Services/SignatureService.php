@@ -71,8 +71,22 @@ class SignatureService
     {
         return PvSignature::updateOrCreate(
             ['user_id' => $user->getKey()],
-            ['path' => $path, 'mime' => $mime]
+            [
+                'path' => $path,
+                'mime' => $mime,
+                'signed_mechanism' => $this->mechanism(),
+                'signed_at' => now(),
+            ]
         );
+    }
+
+    /**
+     * Mécanisme de signature enregistré pour la trace de conformité.
+     * Valeur par défaut : "simple_image" (image + horodatage).
+     */
+    public function mechanism(): string
+    {
+        return (string) config('pv-module.signature_mechanism', 'simple_image');
     }
 
     public function getSignature($user): ?PvSignature
